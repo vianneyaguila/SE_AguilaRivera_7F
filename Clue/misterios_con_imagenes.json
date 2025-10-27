@@ -1,0 +1,32 @@
+{
+  "expediente": {
+    "personajes": [
+      {"nombre": "Dra. Evelyn Reed", "rol": "La Rival (CEO Competidora)", "suceso": "Fue vista en una acalorada discusión con Thorne horas antes del crimen.", "imagen": "p_reed.png"},
+      {"nombre": "Profesor Kenji Tanaka", "rol": "El Mentor (Profesor traicionado)", "suceso": "Se le vio deambulando cerca del Escenario Principal, murmurando sobre 'crédito robado'.", "imagen": "p_tanaka.png"},
+      {"nombre": "Glitch", "rol": "El Activista (Hacker anti-IA)", "suceso": "Las cámaras lo detectaron evadiendo la seguridad cerca del Laboratorio de Pruebas.", "imagen": "p_glitch.png"},
+      {"nombre": "Bryce Wagner", "rol": "El Inversor (Socio capitalista)", "suceso": "Estuvo en el Salón VIP toda la noche, pero hizo varias llamadas 'urgentes' y parecía nervioso.", "imagen": "p_wagner.png"},
+      {"nombre": "Chloe Jenkins", "rol": "La Asistente (Asistente personal)", "suceso": "Tiene acceso a todas las áreas, incluida la Sala de Servidores. Se reportó que faltó a su última reunión.", "imagen": "p_jenkins.png"}
+    ],
+    "armas": [
+      {"nombre": "Cable de Red", "suceso": "Un rollo de cable de red desapareció del armario de mantenimiento.", "imagen": "a_cable.png"},
+      {"nombre": "Prototipo de Dron Pesado", "suceso": "Este dron en el Muelle de Carga tiene un historial de fallos.", "imagen": "a_dron.png"},
+      {"nombre": "Café Envenenado", "suceso": "Thorne siempre pedía un termo especial. La estación de café del Salón VIP no tiene vigilancia.", "imagen": "a_cafe.png"},
+      {"nombre": "Unidad USB Corrupta", "suceso": "Se encontró una USB desconocida conectada a un terminal en el Laboratorio de Pruebas.", "imagen": "a_usb.png"},
+      {"nombre": "Premio a la Innovación", "suceso": "La pesada estatuilla de cristal estaba en el atril, pero alguien la limpió de huellas.", "imagen": "a_premio.png"}
+    ],
+    "locaciones": [
+      {"nombre": "El Escenario Principal", "suceso": "Las luces del escenario fallaron misteriosamente en la hora del crimen.", "imagen": "l_escenario.png"},
+      {"nombre": "El Laboratorio de Pruebas", "suceso": "La bitácora de acceso fue borrada remotamente.", "imagen": "l_lab.png"},
+      {"nombre": "La Sala de Servidores", "suceso": "Es ruidosa y caliente. Nadie escucharía un forcejeo.", "imagen": "l_servidores.png"},
+      {"nombre": "El Salón VIP", "suceso": "La cámara de seguridad de la esquina estuvo 'en mantenimiento'.", "imagen": "l_vip.png"},
+      {"nombre": "El Muelle de Carga", "suceso": "Es una zona de poco tránsito. Fácil para mover equipo... o un cuerpo.", "imagen": "l_muelle.png"}
+    ]
+  },
+  "escenarios": [
+    {"culpable": "Dra. Evelyn Reed", "arma": "Café Envenenado", "locacion": "El Salón VIP"},
+    {"culpable": "Profesor Kenji Tanaka", "arma": "Premio a la Innovación", "locacion": "El Escenario Principal"},
+    {"culpable": "Glitch", "arma": "Unidad USB Corrupta", "locacion": "El Laboratorio de Pruebas"},
+    {"culpable": "Bryce Wagner", "arma": "Prototipo de Dron Pesado", "locacion": "El Muelle de Carga"},
+    {"culpable": "Chloe Jenkins", "arma": "Cable de Red", "locacion": "La Sala de Servidores"}
+  ]
+}
