@@ -17,6 +17,7 @@
   "personajes": [
     {
       "nombre": "Daphne Bridgerton",
+      "imagen": "daphne.png",
       "es_bridgerton": "si",
       "es_featherington": "no",
       "es_hombre": "no",
@@ -33,6 +34,7 @@
     },
     {
       "nombre": "Anthony Bridgerton",
+      "imagen": "anthony.png",
       "es_bridgerton": "si",
       "es_featherington": "no",
       "es_hombre": "si",
@@ -48,23 +50,8 @@
       "tiene_identidad_secreta": "no"
     },
     {
-      "nombre": "Simon Basset",
-      "es_bridgerton": "no",
-      "es_featherington": "no",
-      "es_hombre": "si",
-      "es_protagonista": "si",
-      "es_alta_nobleza": "si",
-      "es_realeza": "no",
-      "desafia_normas": "si",
-      "es_artista": "no",
-      "es_intelectual": "no",
-      "es_madre_influyente": "no",
-      "busca_matrimonio_activamente": "no",
-      "involucrado_en_escandalo": "si",
-      "tiene_identidad_secreta": "no"
-    },
-    {
       "nombre": "Benedict Bridgerton",
+      "imagen": "benedict.png",
       "es_bridgerton": "si",
       "es_featherington": "no",
       "es_hombre": "si",
@@ -81,6 +68,7 @@
     },
     {
       "nombre": "Colin Bridgerton",
+      "imagen": "colin.png",
       "es_bridgerton": "si",
       "es_featherington": "no",
       "es_hombre": "si",
@@ -97,6 +85,7 @@
     },
     {
       "nombre": "Eloise Bridgerton",
+      "imagen": "eloise.png",
       "es_bridgerton": "si",
       "es_featherington": "no",
       "es_hombre": "no",
@@ -113,6 +102,7 @@
     },
     {
       "nombre": "Francesca Bridgerton",
+      "imagen": "francesca.png",
       "es_bridgerton": "si",
       "es_featherington": "no",
       "es_hombre": "no",
@@ -128,7 +118,25 @@
       "tiene_identidad_secreta": "no"
     },
     {
+      "nombre": "Violet Bridgerton",
+      "imagen": "violet.png",
+      "es_bridgerton": "si",
+      "es_featherington": "no",
+      "es_hombre": "no",
+      "es_protagonista": "no",
+      "es_alta_nobleza": "no",
+      "es_realeza": "no",
+      "desafia_normas": "no",
+      "es_artista": "no",
+      "es_intelectual": "no",
+      "es_madre_influyente": "si",
+      "busca_matrimonio_activamente": "si",
+      "involucrado_en_escandalo": "no",
+      "tiene_identidad_secreta": "no"
+    },
+    {
       "nombre": "Penelope Featherington",
+      "imagen": "penelope.png",
       "es_bridgerton": "no",
       "es_featherington": "si",
       "es_hombre": "no",
@@ -145,6 +153,7 @@
     },
     {
       "nombre": "Portia Featherington",
+      "imagen": "portia.png",
       "es_bridgerton": "no",
       "es_featherington": "si",
       "es_hombre": "no",
@@ -161,6 +170,7 @@
     },
     {
       "nombre": "Prudence Featherington",
+      "imagen": "prudence.png",
       "es_bridgerton": "no",
       "es_featherington": "si",
       "es_hombre": "no",
@@ -172,11 +182,12 @@
       "es_intelectual": "no",
       "es_madre_influyente": "no",
       "busca_matrimonio_activamente": "si",
-      "involucrado_en_escandalo": "no",
+      "involucado_en_escandalo": "no",
       "tiene_identidad_secreta": "no"
     },
     {
       "nombre": "Philippa Featherington",
+      "imagen": "philippa.png",
       "es_bridgerton": "no",
       "es_featherington": "si",
       "es_hombre": "no",
@@ -192,7 +203,59 @@
       "tiene_identidad_secreta": "no"
     },
     {
+      "nombre": "Simon Basset",
+      "imagen": "simon.png",
+      "es_bridgerton": "no",
+      "es_featherington": "no",
+      "es_hombre": "si",
+      "es_protagonista": "si",
+      "es_alta_nobleza": "si",
+      "es_realeza": "no",
+      "desafia_normas": "si",
+      "es_artista": "no",
+      "es_intelectual": "no",
+      "es_madre_influyente": "no",
+      "busca_matrimonio_activamente": "no",
+      "involucrado_en_escandalo": "si",
+      "tiene_identidad_secreta": "no"
+    },
+    {
+      "nombre": "Kate Sharma",
+      "imagen": "kate.png",
+      "es_bridgerton": "no",
+      "es_featherington": "no",
+      "es_hombre": "no",
+      "es_protagonista": "si",
+      "es_alta_nobleza": "si",
+      "es_realeza": "no",
+      "desafia_normas": "si",
+      "es_artista": "no",
+      "es_intelectual": "si",
+      "es_madre_influyente": "no",
+      "busca_matrimonio_activamente": "no",
+      "involucrado_en_escandalo": "si",
+      "tiene_identidad_secreta": "no"
+    },
+    {
+      "nombre": "Edwina Sharma",
+      "imagen": "edwina.png",
+      "es_bridgerton": "no",
+      "es_featherington": "no",
+      "es_hombre": "no",
+      "es_protagonista": "no",
+      "es_alta_nobleza": "no",
+      "es_realeza": "no",
+      "desafia_normas": "no",
+      "es_artista": "si",
+      "es_intelectual": "si",
+      "es_madre_influyente": "no",
+      "busca_matrimonio_activamente": "si",
+      "involucrado_en_escandalo": "si",
+      "tiene_identidad_secreta": "no"
+    },
+    {
       "nombre": "Marina Thompson",
+      "imagen": "marina.png",
       "es_bridgerton": "no",
       "es_featherington": "no",
       "es_hombre": "no",
@@ -209,6 +272,7 @@
     },
     {
       "nombre": "Lady Danbury",
+      "imagen": "danbury.png",
       "es_bridgerton": "no",
       "es_featherington": "no",
       "es_hombre": "no",
@@ -225,6 +289,7 @@
     },
     {
       "nombre": "Reina Charlotte",
+      "imagen": "charlotte.png",
       "es_bridgerton": "no",
       "es_featherington": "no",
       "es_hombre": "no",
