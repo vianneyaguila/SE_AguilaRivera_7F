@@ -1,0 +1,32 @@
+[
+  {
+    "culpable": "Dra. Evelyn Reed",
+    "arma": "Café Envenenado",
+    "locacion": "El Salón VIP",
+    "historia": "¡Correcto! La Dra. Reed no podía permitir que Thorne triunfara..."
+  },
+  {
+    "culpable": "Profesor Kenji Tanaka",
+    "arma": "Premio a la Innovación",
+    "locacion": "El Escenario Principal",
+    "historia": "¡Has descubierto la verdad! El Profesor Tanaka confrontó a Thorne..."
+  },
+  {
+    "culpable": "Glitch",
+    "arma": "Unidad USB Corrupta",
+    "locacion": "El Laboratorio de Pruebas",
+    "historia": "¡Impresionante! 'Glitch' creía que la IA de Thorne esclavizaría a la humanidad..."
+  },
+  {
+    "culpable": "Bryce Wagner",
+    "arma": "Prototipo de Dron Pesado",
+    "locacion": "El Muelle de Carga",
+    "historia": "¡Exacto! Wagner estaba arruinado. Había invertido todo en Thorne..."
+  },
+  {
+    "culpable": "Chloe Jenkins",
+    "arma": "Cable de Red",
+    "locacion": "La Sala de Servidores",
+    "historia": "¡Increíble, era ella! Chloe descubrió que Thorne planeaba despedirla..."
+  }
+]
