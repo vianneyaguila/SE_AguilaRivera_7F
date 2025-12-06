@@ -6,45 +6,62 @@ import sqlite3
 import os
 from motor_inferencia import MotorRecomendacion
 
-# Variables de configuración (AJUSTA ESTO SEGÚN TU EXCEL)
-EXCEL_FILE = 'mi_dataset_libros.xlsx' 
-DB_FILE = 'sistema_experto_libros.db'
-# Nombres de las columnas de tu Excel que mapean a los atributos
-GENERO_COL = 'Genero' # Columna de Género de tu Excel
-RITMO_COL = 'Ritmo'   # Columna de Ritmo de tu Excel
+# --- CONFIGURACIÓN DE RUTAS Y VARIABLES CLAVE ---
+
+# Obtiene la ruta del directorio actual (asegura que la BD se guarde aquí)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
+
+# Nombres de archivos (¡USANDO EL NOMBRE CORTO Y LA EXTENSIÓN .xlsx!)
+EXCEL_FILENAME = 'libros_datos.xlsx' 
+DB_FILENAME = 'sistema_experto_libros.db'
+
+# Rutas COMPLETAS y ABSOLUTAS
+EXCEL_FILE = os.path.join(BASE_DIR, EXCEL_FILENAME)
+DB_FILE = os.path.join(BASE_DIR, DB_FILENAME) 
+
+# Nombres de las columnas de tu Excel para el mapeo (¡AJUSTAR ESTO A TU DATASET!)
+# Sugerencia basada en datasets comunes:
+COLS_MAPEO = {
+    'book_id': 'ID_Libro', 
+    'title': 'Titulo', 
+    'authors': 'Autor',
+    'average_rating': 'Rating_Base', # Usado como FC inicial y para Complejidad
+    'Category': 'Atributo_1_Genero' # ASUME QUE TIENES UNA COLUMNA LLAMADA 'Category'
+}
+
 
 def cargar_datos_iniciales(excel_file, db_file):
-    """Carga los datos del Excel a la tabla LIBROS en SQLite."""
+    """Carga los datos del Excel (xlsx) a la tabla LIBROS en SQLite."""
     try:
         conn = sqlite3.connect(db_file)
         
-        # 1. Leer el Excel (Asegúrate de tener instalado pandas y openpyxl)
-        df_libros = pd.read_excel(excel_file, sheet_name=0) 
+        # 1. Leer el Excel (¡USANDO read_excel!)
+        df_libros = pd.read_excel(excel_file, sheet_name=0, engine='openpyxl') 
         
         # 2. Preparación y Mapeo de Columnas
-        df_libros = df_libros.rename(columns={
-            'book_id': 'ID_Libro', 
-            'title': 'Titulo', 
-            'authors': 'Autor',
-            'average_rating': 'Rating_Base', # Usado como FC inicial
-            GENERO_COL: 'Atributo_1_Genero', 
-            RITMO_COL: 'Atributo_2_Ritmo' 
-        })
+        df_libros = df_libros.rename(columns=COLS_MAPEO)
+        
+        # --- CREACIÓN DE ATRIBUTOS SINTÉTICOS (Ritmo y Complejidad) ---
+        # Si el rating es alto, asumimos que es 'Rapido' y 'Baja' complejidad (popular)
+        df_libros['Atributo_2_Ritmo'] = df_libros['Rating_Base'].apply(
+            lambda x: 'Rapido' if x > 4.2 else 'Lento'
+        )
+        df_libros['Atributo_3_Complejidad'] = df_libros['Rating_Base'].apply(
+            lambda x: 'Baja' if x > 4.2 else 'Alta'
+        )
         
         # Rellenar valores nulos y asegurar que los atributos sean strings
         df_libros['Atributo_1_Genero'] = df_libros['Atributo_1_Genero'].fillna('Desconocido').astype(str)
-        df_libros['Atributo_2_Ritmo'] = df_libros['Atributo_2_Ritmo'].fillna('Desconocido').astype(str)
-        
+
         # Solo usar las columnas necesarias
-        df_libros_final = df_libros[['ID_Libro', 'Titulo', 'Autor', 'Rating_Base', 
-                                     'Atributo_1_Genero', 'Atributo_2_Ritmo']].copy()
+        df_libros_final = df_libros[list(COLS_MAPEO.values()) + ['Atributo_2_Ritmo', 'Atributo_3_Complejidad']].copy()
         
         # 3. Crear y Llenar la tabla LIBROS (Requisito: Conexión a BD)
         df_libros_final.to_sql('LIBROS', conn, if_exists='replace', index=False)
         print(f"✅ Tabla 'LIBROS' creada y llenada con {len(df_libros_final)} registros.")
 
     except FileNotFoundError:
-        print(f"❌ ERROR: Archivo '{excel_file}' no encontrado. ¡Ajusta la variable EXCEL_FILE!")
+        print(f"❌ ERROR: Archivo '{excel_file}' no encontrado. ¡Asegúrate de renombrar tu Excel a {EXCEL_FILENAME}!")
     except Exception as e:
         print(f"❌ Error durante la carga de Excel o la BD: {e}")
     finally:
@@ -79,19 +96,18 @@ if __name__ == "__main__":
     # 2. Inicialización del Motor
     motor = MotorRecomendacion(db_file=DB_FILE)
     if not motor.conectar_bd():
-        exit() # Termina si no hay conexión
+        exit()
         
     motor.cargar_reglas()
         
     # 3. Interacción y Respuestas
     respuestas_del_usuario = simular_encuesta()
 
-    # 4. INICIO DE LA INFERENCIA (Punto central para el video)
+    # 4. INICIO DE LA INFERENCIA 
     print("\n==============================================")
     print("          INICIO DEL MOTOR DE INFERENCIA      ")
     print("==============================================")
     
-    # Ejecuta el motor y obtiene el top 3 y la traza
     recomendaciones, trazabilidad = motor.inferir_recomendaciones(respuestas_del_usuario)
 
     # 5. Demostración de Trazabilidad (Para el Video)
@@ -104,15 +120,12 @@ if __name__ == "__main__":
     print("\n✅ RECOMENDACIONES FINALES (TOP 3) ✅")
     if recomendaciones:
         for libro_id, puntaje in recomendaciones:
-            # Consulta final para obtener el título completo
             cursor = motor.conn.cursor()
             cursor.execute(f"SELECT Titulo, Autor FROM LIBROS WHERE ID_Libro = {libro_id}")
             resultado = cursor.fetchone()
             
             if resultado:
                 titulo, autor = resultado
-                # Puntuación Total Máxima (ej: 0.95+0.85+0.90 + 5.0) para un cálculo simple de porcentaje.
-                # Aquí el puntaje es la suma directa de las reglas activadas + el rating base.
                 print(f"-> {titulo} ({autor}) | Puntaje de Afinidad Total: {puntaje:.2f}")
             else:
                 print(f"Libro ID {libro_id} no encontrado.")
