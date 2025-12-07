@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entorno virtual
+venv_serl/
+.venv/
+
+# Base de datos (datos generados, no conocimiento)
+*.db
+*.sqlite3
+
+# Logs and Temporaries
+log.txt
