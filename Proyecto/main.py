@@ -1,54 +1,39 @@
 # ==================================
-# 3. main.py (Versión CustomTkinter Estilizada)
+# main.py (Versión de Alta Fidelidad con Assets .PNG y .JPG)
 # ==================================
 import sqlite3
 import os
 import customtkinter as ctk 
 from motor_inferencia import MotorRecomendacion
-from PIL import Image # Necesario para manejar imágenes (aunque solo mostramos texto)
+from PIL import Image, ImageTk 
 
-# --- CONFIGURACIÓN GLOBAL DE COLORES Y FUENTE ---
-COLOR_PRIMARIO = "#A59097" # Color morado/gris (Acento del botón, radio button activo)
-COLOR_FONDO_TARJETA = "#ECE0E4" # Color gris/blanco (Fondo de las tarjetas de preguntas)
-COLOR_TEXTO_OSCURO = "#333333" # Texto principal
-FUENTE_PRINCIPAL = "tllt warp" # Nombre de la fuente de Figma
+# --- CONFIGURACIÓN GLOBAL ---
+COLOR_PRIMARIO = "#A59097"       
+COLOR_FONDO_TARJETA = "#ECE0E4"  
+COLOR_TEXTO_OSCURO = "#000000"   
+COLOR_FONDO_APLICACION = "#E0E0E0" 
+FUENTE_PRINCIPAL = "Arial"   
 
-# Ruta para guardar la BD
+# Rutas
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
 DB_FILENAME = 'sistema_experto_libros.db'
 DB_FILE = os.path.join(BASE_DIR, DB_FILENAME) 
+ASSETS_DIR = os.path.join(BASE_DIR, "assets") 
 
 # --- DATOS DE EJEMPLO DE LIBROS (BASE DE HECHOS) ---
-# Hechos: Titulo, Autor, Género, Ritmo, Complejidad, Rating, URL_Imagen
 LIBROS_EJEMPLO = [
-    # Romance
-    ("Orgullo y Prejuicio", "Jane Austen", "Romance", "Lento", "Media", 4.5, 
-     "https://m.media-amazon.com/images/I/71nI0kH-3mL._SL1500_.jpg"),
-    ("Bajo la Misma Estrella", "John Green", "Romance", "Rápido", "Baja", 4.2, 
-     "https://m.media-amazon.com/images/I/71mOq73n-1L._SL1500_.jpg"),
-    
-    # Comics
-    ("Maus I", "Art Spiegelman", "Comic", "Lento", "Alta", 4.8, 
-     "https://m.media-amazon.com/images/I/71Yy3rG8HdL._SL1500_.jpg"),
-    ("Watchmen", "Alan Moore", "Comic", "Rápido", "Alta", 4.9, 
-     "https://m.media-amazon.com/images/I/71GqC-M-SdL._SL1500_.jpg"),
-     
-    # Ciencia Ficción
-    ("Dune", "Frank Herbert", "Ciencia Ficción", "Lento", "Alta", 4.7, 
-     "https://m.media-amazon.com/images/I/71Z-P5nN8iL._SL1500_.jpg"),
-    ("Neuromante", "William Gibson", "Ciencia Ficción", "Rápido", "Media", 4.6, 
-     "https://m.media-amazon.com/images/I/61S-r57-qdL._SL1500_.jpg"),
-    
-    # Fantasía
-    ("El Señor de los Anillos", "J.R.R. Tolkien", "Fantasia", "Lento", "Alta", 4.9,
-     "https://m.media-amazon.com/images/I/71jN0D2lQ8L._SL1500_.jpg"),
-    ("Harry Potter y la Piedra Filosofal", "J.K. Rowling", "Fantasia", "Rápido", "Baja", 4.7,
-     "https://m.media-amazon.com/images/I/71gP-l5-i0L._SL1500_.jpg")
+    ("Orgullo y Prejuicio", "Jane Austen", "Romance", "Lento", "Media", 4.5, "URL_dummy"),
+    ("Maus I", "Art Spiegelman", "Comic", "Lento", "Alta", 4.8, "URL_dummy"),
+    ("Dune", "Frank Herbert", "Ciencia Ficción", "Lento", "Alta", 4.7, "URL_dummy"),
+    ("Harry Potter y la Piedra Filosofal", "J.K. Rowling", "Fantasia", "Rápido", "Baja", 4.7, "URL_dummy"),
+    ("Bajo la Misma Estrella", "John Green", "Romance", "Rápido", "Baja", 4.2, "URL_dummy"),
+    ("Watchmen", "Alan Moore", "Comic", "Rápido", "Alta", 4.9, "URL_dummy"),
+    ("Neuromante", "William Gibson", "Ciencia Ficción", "Rápido", "Media", 4.6, "URL_dummy"),
+    ("El Señor de los Anillos", "J.R.R. Tolkien", "Fantasia", "Lento", "Alta", 4.9, "URL_dummy")
 ]
 
 # --- FUNCIÓN DE CREACIÓN DE BD (SIN CAMBIOS) ---
 def crear_y_cargar_bd_libros(db_file, libros_data):
-    """Crea la tabla LIBROS en SQLite y la llena con datos."""
     conn = None
     try:
         conn = sqlite3.connect(db_file)
@@ -83,170 +68,348 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        # --- CONFIGURACIÓN DE LA VENTANA Y ESTILOS ---
+        # --- CONFIGURACIÓN DE LA VENTANA ---
         self.title("SERL - Sistema Experto de Recomendación")
-        self.geometry("800x950")
+        self.geometry("450x750")  
+        self.resizable(False, False) 
         self.grid_columnconfigure(0, weight=1) 
-        
-        # Usamos el modo claro, ya que los colores de Figma son claros
+        self.grid_rowconfigure(0, weight=1)
+        self.configure(fg_color=COLOR_FONDO_APLICACION) 
         ctk.set_appearance_mode("Light") 
-        # Configurar el tema con el color primario para botones/acento
-        ctk.set_default_color_theme("blue") # Esto es solo para la estructura interna, pero usamos fg_color para sobrescribir
         
-        # Fuentes personalizadas
-        self.font_titulo = ctk.CTkFont(family=FUENTE_PRINCIPAL, size=24, weight="bold")
-        self.font_pregunta = ctk.CTkFont(family=FUENTE_PRINCIPAL, size=16, weight="bold")
-        self.font_opcion = ctk.CTkFont(family=FUENTE_PRINCIPAL, size=14)
-        
-        # --- CONFIGURACIÓN DEL MOTOR ---
+        # --- CARGA DE ASSETS (AJUSTE DE EXTENSIONES) ---
+        self.assets = self._load_all_assets()
+        if not self.assets:
+             print("ADVERTENCIA: No se pudieron cargar los assets. Verifica la carpeta 'assets'.")
+             self.assets = {} 
+
+        # --- CONFIGURACIÓN DEL MOTOR Y VARIABLES (Sin cambios) ---
         self.motor = MotorRecomendacion(db_file=DB_FILE)
         self.motor.conectar_bd()
         self.motor.cargar_reglas()
 
-        # --- INTERFAZ (Layout y Widgets Estilizados) ---
+        self.font_pregunta = ctk.CTkFont(family=FUENTE_PRINCIPAL, size=20, weight="bold")
+        self.font_opcion = ctk.CTkFont(family=FUENTE_PRINCIPAL, size=16, weight="normal")
+        self.font_button = ctk.CTkFont(family=FUENTE_PRINCIPAL, size=16, weight="bold")
         
-        # 1. Título Principal
-        self.label_titulo = ctk.CTkLabel(self, text="Sistema Experto de Recomendación de Libros", 
-                                         font=self.font_titulo, text_color=COLOR_TEXTO_OSCURO)
-        self.label_titulo.grid(row=0, column=0, padx=20, pady=(20, 10))
+        self.current_step = 1 
+        self.max_steps = 3 
         
-        # 2. Contenedor principal de las Preguntas (simula la estructura de tu Figma)
-        self.frame_preguntas = ctk.CTkFrame(self, fg_color=COLOR_FONDO_TARJETA, corner_radius=15)
-        self.frame_preguntas.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
-        self.frame_preguntas.grid_columnconfigure(0, weight=1)
-
-        # Variables para Radio Buttons
+        self.var_genero = ctk.StringVar(value="")
         self.var_ritmo = ctk.StringVar(value="")
         self.var_complejidad = ctk.StringVar(value="")
+
+        # --- CONTENEDOR CENTRAL ---
+        self.main_container = ctk.CTkFrame(self, 
+                                           fg_color="white", 
+                                           corner_radius=40) 
+        self.main_container.grid(row=0, column=0, padx=30, pady=30, sticky="nsew")
+        self.main_container.grid_columnconfigure(0, weight=1)
+        self.main_container.grid_rowconfigure(0, weight=1)
         
-        # 2.1 Género (CTkComboBox)
-        self.label_genero = ctk.CTkLabel(self.frame_preguntas, text="1. ¿Qué género o ambientación prefiere?", font=self.font_pregunta, text_color=COLOR_TEXTO_OSCURO)
-        self.label_genero.grid(row=0, column=0, padx=20, pady=(15, 5), sticky="w")
-        self.opciones_genero = ["Romance", "Comic", "Ciencia Ficción", "Fantasia"]
-        self.dd_genero = ctk.CTkComboBox(self.frame_preguntas, values=self.opciones_genero, width=350, 
-                                         fg_color=COLOR_FONDO_TARJETA, button_color=COLOR_PRIMARIO, 
-                                         border_color=COLOR_PRIMARIO, text_color=COLOR_TEXTO_OSCURO, font=self.font_opcion)
-        self.dd_genero.set("Seleccionar")
-        self.dd_genero.grid(row=1, column=0, padx=20, pady=(0, 15), sticky="w")
+        # --- SISTEMA DE GESTIÓN DE PÁGINAS ---
+        self.frames = {}
+        for F in (GenreFrame, RhythmFrame, ComplexityFrame, ResultFrame):
+            frame = F(self.main_container, self)
+            self.frames[F.__name__] = frame 
+            frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+            
+        self.show_frame("GenreFrame")
 
-        # 2.2 Ritmo (CTkRadioButton)
-        self.label_ritmo = ctk.CTkLabel(self.frame_preguntas, text="2. ¿Prefiere un ritmo de lectura?", font=self.font_pregunta, text_color=COLOR_TEXTO_OSCURO)
-        self.label_ritmo.grid(row=2, column=0, padx=20, pady=(15, 5), sticky="w")
-        self.rb_ritmo_rapido = ctk.CTkRadioButton(self.frame_preguntas, text="Acción y giros rápidos", variable=self.var_ritmo, value="Ritmo Rápido", 
-                                                 fg_color=COLOR_PRIMARIO, hover_color=COLOR_PRIMARIO, text_color=COLOR_TEXTO_OSCURO, font=self.font_opcion)
-        self.rb_ritmo_rapido.grid(row=3, column=0, padx=20, pady=5, sticky="w")
-        self.rb_ritmo_lento = ctk.CTkRadioButton(self.frame_preguntas, text="Desarrollo profundo y pausado", variable=self.var_ritmo, value="Ritmo Lento", 
-                                                fg_color=COLOR_PRIMARIO, hover_color=COLOR_PRIMARIO, text_color=COLOR_TEXTO_OSCURO, font=self.font_opcion)
-        self.rb_ritmo_lento.grid(row=4, column=0, padx=20, pady=(5, 15), sticky="w")
-
-        # 2.3 Complejidad (CTkRadioButton)
-        self.label_complejidad = ctk.CTkLabel(self.frame_preguntas, text="3. ¿Busca un reto intelectual en la lectura?", font=self.font_pregunta, text_color=COLOR_TEXTO_OSCURO)
-        self.label_complejidad.grid(row=5, column=0, padx=20, pady=(15, 5), sticky="w")
-        self.rb_comp_alta = ctk.CTkRadioButton(self.frame_preguntas, text="Sí (trama compleja)", variable=self.var_complejidad, value="Complejidad Alta", 
-                                               fg_color=COLOR_PRIMARIO, hover_color=COLOR_PRIMARIO, text_color=COLOR_TEXTO_OSCURO, font=self.font_opcion)
-        self.rb_comp_alta.grid(row=6, column=0, padx=20, pady=5, sticky="w")
-        self.rb_comp_media = ctk.CTkRadioButton(self.frame_preguntas, text="Intermedia", variable=self.var_complejidad, value="Complejidad Media", 
-                                                fg_color=COLOR_PRIMARIO, hover_color=COLOR_PRIMARIO, text_color=COLOR_TEXTO_OSCURO, font=self.font_opcion)
-        self.rb_comp_media.grid(row=7, column=0, padx=20, pady=5, sticky="w")
-        self.rb_comp_baja = ctk.CTkRadioButton(self.frame_preguntas, text="No (lectura ligera)", variable=self.var_complejidad, value="Complejidad Baja", 
-                                               fg_color=COLOR_PRIMARIO, hover_color=COLOR_PRIMARIO, text_color=COLOR_TEXTO_OSCURO, font=self.font_opcion)
-        self.rb_comp_baja.grid(row=8, column=0, padx=20, pady=(5, 15), sticky="w")
-
-        # 3. Botón de Ejecución (Usando el COLOR_PRIMARIO)
-        self.btn_recomendar = ctk.CTkButton(self, text="Recomendar Libro (Ejecutar Sistema Experto)", 
-                                            command=self.ejecutar_inferencia,
-                                            fg_color=COLOR_PRIMARIO, 
-                                            hover_color="#89777E", # Un tono más oscuro para el hover
-                                            font=self.font_pregunta)
-        self.btn_recomendar.grid(row=2, column=0, padx=20, pady=20)
+    def _load_all_assets(self):
+        """Carga todos los assets de imagen del directorio ASSETS_DIR con las extensiones especificadas."""
+        assets = {}
         
-        # 4. Frame de Resultados
-        self.resultado_frame = ctk.CTkFrame(self)
-        self.resultado_frame.grid(row=3, column=0, padx=20, pady=10, sticky="nsew")
-        self.resultado_frame.grid_columnconfigure(0, weight=1)
-
-        # 4.1 Frame para mostrar las recomendaciones (Libros)
-        self.recomendaciones_scroll_frame = ctk.CTkScrollableFrame(self.resultado_frame, label_text="✅ RECOMENDACIONES FINALES (TOP 3)", 
-                                                                   label_font=self.font_pregunta)
-        self.recomendaciones_scroll_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-        self.recomendaciones_scroll_frame.grid_columnconfigure(0, weight=1)
+        # Diccionario de ASSETS de FIGMA y sus nombres de archivo:
+        asset_files = {
+            'flecha_atras': 'flecha_atras.png',
+            'flecha_siguiente': 'flecha_siguiente.png',
+            'radio_normal': 'radio_normal.png',         # <<<< USANDO .PNG
+            'radio_seleccionado': 'radio_seleccionado.png', # <<<< USANDO .PNG
+            'placeholder_book': 'placeholder_book.jpg', # <<<< USANDO .JPG
+            'boton_recomendar': 'boton_recomendar.png'
+        }
         
-        # 4.2 Textbox para Trazabilidad
-        self.label_trazabilidad = ctk.CTkLabel(self.resultado_frame, text="TRAZABILIDAD DE INFERENCIA:", 
-                                               font=ctk.CTkFont(family=FUENTE_PRINCIPAL, size=12, weight="bold"))
-        self.label_trazabilidad.grid(row=1, column=0, padx=10, pady=(10, 5), sticky="w")
+        for key, filename in asset_files.items():
+            try:
+                path = os.path.join(ASSETS_DIR, filename)
+                img = Image.open(path)
+                
+                # Asignar un tamaño por defecto para consistencia
+                size = (25, 25) if 'flecha' in key or 'radio' in key else ((150, 50) if 'boton' in key else (150, 200))
+                
+                assets[key] = ctk.CTkImage(light_image=img.resize(size), 
+                                           dark_image=img.resize(size), 
+                                           size=size)
+            except FileNotFoundError:
+                print(f"❌ ERROR: El asset '{filename}' no se encontró en {ASSETS_DIR}")
+                return None
+            except Exception as e:
+                print(f"❌ Error al cargar el asset '{filename}': {e}")
+                return None
+                
+        return assets
+    
+    # --- Métodos de Navegación y Ejecución (Sin cambios) ---
+    def show_frame(self, frame_name):
+        frame = self.frames[frame_name]
+        frame.tkraise()
+        if hasattr(frame, 'update_buttons'):
+            frame.update_buttons()
+
+    def go_next(self):
+        if self.current_step == 1 and not self.var_genero.get():
+             return
+        if self.current_step == 2 and not self.var_ritmo.get():
+             return
         
-        self.textbox_trazabilidad = ctk.CTkTextbox(self.resultado_frame, height=180, width=700, font=ctk.CTkFont(family="Consolas", size=10))
-        self.textbox_trazabilidad.grid(row=2, column=0, padx=10, pady=(0, 10), sticky="ew")
-        self.textbox_trazabilidad.insert("end", "Presiona el botón para iniciar la recomendación...")
+        if self.current_step < self.max_steps:
+            self.current_step += 1
+            if self.current_step == 2:
+                self.show_frame("RhythmFrame")
+            elif self.current_step == 3:
+                self.show_frame("ComplexityFrame")
+        elif self.current_step == self.max_steps:
+            self.ejecutar_inferencia()
 
-
+    def go_back(self):
+        if self.current_step > 1:
+            self.current_step -= 1
+            if self.current_step == 1:
+                self.show_frame("GenreFrame")
+            elif self.current_step == 2:
+                self.show_frame("RhythmFrame")
+        
     def ejecutar_inferencia(self):
-        """Función que recolecta datos y llama al motor."""
-        
-        # 1. Recolección de Respuestas
         respuestas_usuario = [
-            self.dd_genero.get(),
+            self.var_genero.get(),
             self.var_ritmo.get(),
             self.var_complejidad.get()
         ]
         
-        # 2. Validación
-        if "Seleccionar" in respuestas_usuario or "" in respuestas_usuario:
-            self.textbox_trazabilidad.delete("1.0", "end")
-            self.textbox_trazabilidad.insert("end", "❌ ERROR: Por favor, seleccione una opción en cada pregunta.")
+        if not self.var_complejidad.get():
             return
 
-        # 3. Ejecutar la Inferencia
         recomendaciones, trazabilidad = self.motor.inferir_recomendaciones(respuestas_usuario)
         
-        # 4. Mostrar Resultados (Limpiar y actualizar)
+        result_frame = self.frames["ResultFrame"]
+        result_frame.update_results(recomendaciones, trazabilidad)
         
-        # Limpiar el frame de recomendaciones
-        for widget in self.recomendaciones_scroll_frame.winfo_children():
-            widget.destroy()
+        self.current_step += 1 
+        self.show_frame("ResultFrame")
 
+
+# --- CLASE PERSONALIZADA PARA BOTONES DE RADIO BASADOS EN IMÁGENES ---
+class ImageRadioButton(ctk.CTkButton):
+    def __init__(self, master, variable, value, text, controller, **kwargs):
+        
+        self.img_normal = controller.assets.get('radio_normal')
+        self.img_seleccionado = controller.assets.get('radio_seleccionado')
+        
+        self.variable = variable
+        self.value = value
+        
+        super().__init__(master, 
+                         text=text, 
+                         image=self.img_normal, 
+                         command=self._select_option,
+                         compound="left", 
+                         width=300, 
+                         height=50, 
+                         corner_radius=15, 
+                         fg_color="transparent", 
+                         text_color=COLOR_TEXTO_OSCURO,
+                         hover_color=COLOR_FONDO_TARJETA, 
+                         font=controller.font_opcion, 
+                         **kwargs)
+        
+        self.variable.trace_add("write", self._update_image)
+        self._update_image()
+        
+    def _select_option(self):
+        self.variable.set(self.value)
+
+    def _update_image(self, *args):
+        if self.variable.get() == self.value:
+            self.configure(image=self.img_seleccionado, text_color=COLOR_PRIMARIO) 
+        else:
+            self.configure(image=self.img_normal, text_color=COLOR_TEXTO_OSCURO)
+
+# --- PANTALLAS DE LA INTERFAZ ---
+
+class BaseQuestionFrame(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, fg_color="transparent")
+        self.controller = controller
+        self.grid_columnconfigure((0, 2), weight=1) 
+        self.grid_columnconfigure(1, weight=1) 
+        
+        self.question_container = ctk.CTkFrame(self, fg_color="transparent")
+        self.question_container.grid(row=0, column=0, columnspan=3, sticky="nsew", padx=0, pady=(40, 0))
+        self.question_container.grid_columnconfigure(0, weight=1)
+        
+        # Botones de Navegación con Assets de Flecha
+        self.back_button = ctk.CTkButton(self, text="", 
+                                        image=controller.assets.get('flecha_atras'), 
+                                        width=50, height=50, corner_radius=25, 
+                                        fg_color="transparent", 
+                                        hover_color=COLOR_FONDO_TARJETA, 
+                                        command=controller.go_back)
+        self.back_button.grid(row=1, column=0, padx=10, pady=(20, 0), sticky="w")
+        
+        self.next_button = ctk.CTkButton(self, text="", 
+                                        image=controller.assets.get('flecha_siguiente'), 
+                                        width=50, height=50, corner_radius=25, 
+                                        fg_color="transparent", 
+                                        hover_color=COLOR_FONDO_TARJETA, 
+                                        command=controller.go_next)
+        self.next_button.grid(row=1, column=2, padx=10, pady=(20, 0), sticky="e")
+    
+    def update_buttons(self):
+        if self.controller.current_step == 1:
+            self.back_button.configure(state="disabled", hover_color="white")
+        else:
+            self.back_button.configure(state="normal", hover_color=COLOR_FONDO_TARJETA)
+
+class GenreFrame(BaseQuestionFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, controller)
+        
+        self.label = ctk.CTkLabel(self.question_container, text="¿Qué género o ambientación\nprefiere?", 
+                                  font=controller.font_pregunta, text_color=COLOR_TEXTO_OSCURO, justify="center")
+        self.label.grid(row=0, column=0, pady=(0, 20))
+        
+        opciones = ["Romance", "Comic", "Ciencia Ficción", "Fantasia"]
+        for i, opcion in enumerate(opciones):
+            btn = ImageRadioButton(self.question_container, 
+                                     controller.var_genero,
+                                     opcion,
+                                     opcion,
+                                     controller)
+            btn.grid(row=i + 1, column=0, pady=10, sticky="ew")
+
+class RhythmFrame(BaseQuestionFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, controller)
+        
+        self.label = ctk.CTkLabel(self.question_container, text="¿Prefiere un ritmo de lectura?", 
+                                  font=controller.font_pregunta, text_color=COLOR_TEXTO_OSCURO)
+        self.label.grid(row=0, column=0, pady=(0, 20))
+        
+        opciones = [("Acción y giros rápidos", "Ritmo Rápido"), 
+                    ("Desarrollo profundo y pausado", "Ritmo Lento")]
+        
+        for i, (text, value) in enumerate(opciones):
+            btn = ImageRadioButton(self.question_container, 
+                                     controller.var_ritmo,
+                                     value,
+                                     text,
+                                     controller)
+            btn.grid(row=i + 1, column=0, pady=10, sticky="ew")
+
+class ComplexityFrame(BaseQuestionFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, controller)
+        
+        self.label = ctk.CTkLabel(self.question_container, text="¿Busca un reto intelectual\nen la lectura?", 
+                                  font=controller.font_pregunta, text_color=COLOR_TEXTO_OSCURO, justify="center")
+        self.label.grid(row=0, column=0, pady=(0, 20))
+        
+        opciones = [("Sí (vocabulario y trama compleja)", "Complejidad Alta"), 
+                    ("Intermedia", "Complejidad Media"), 
+                    ("No (lectura ligera)", "Complejidad Baja")]
+        
+        for i, (text, value) in enumerate(opciones):
+            btn = ImageRadioButton(self.question_container, 
+                                     controller.var_complejidad,
+                                     value,
+                                     text,
+                                     controller)
+            btn.grid(row=i + 1, column=0, pady=10, sticky="ew")
+        
+        # Configurar botón Siguiente como "Recomendar" usando el asset
+        self.next_button.configure(text="Recomendar", 
+                                  image=controller.assets.get('boton_recomendar'), 
+                                  compound="left",
+                                  width=150, height=50, corner_radius=15, 
+                                  fg_color=COLOR_PRIMARIO, text_color="white", 
+                                  hover_color="#89777E", 
+                                  font=controller.font_button)
+        self.next_button.grid(row=1, column=1, padx=10, pady=(20, 0), sticky="") # Centrar
+
+class ResultFrame(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, fg_color="transparent")
+        self.controller = controller
+        self.grid_columnconfigure(0, weight=1)
+        
+        self.label_titulo = ctk.CTkLabel(self, text="Recomendación Personalizada", 
+                                         font=controller.font_pregunta, text_color=COLOR_TEXTO_OSCURO)
+        self.label_titulo.grid(row=0, column=0, pady=(20, 10))
+        
+        self.book_card = ctk.CTkFrame(self, fg_color=COLOR_FONDO_TARJETA, corner_radius=20, width=400)
+        self.book_card.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+        self.book_card.grid_columnconfigure(0, weight=0) 
+        self.book_card.grid_columnconfigure(1, weight=1) 
+        
+        self.image_label = ctk.CTkLabel(self.book_card, text="", 
+                                        image=controller.assets.get('placeholder_book')) 
+        self.image_label.grid(row=0, column=0, padx=10, pady=10, sticky="nsw")
+        
+        self.book_info = ctk.CTkLabel(self.book_card, text="Selecciona tus preferencias...", justify="left", 
+                                      font=controller.font_opcion, text_color=COLOR_TEXTO_OSCURO)
+        self.book_info.grid(row=0, column=1, padx=10, pady=10, sticky="nsw")
+
+        self.start_over_button = ctk.CTkButton(self, text="Volver a Empezar", 
+                                            command=self.reset_app,
+                                            fg_color=COLOR_PRIMARIO, text_color="white", 
+                                            hover_color="#89777E", 
+                                            font=controller.font_button)
+        self.start_over_button.grid(row=2, column=0, padx=10, pady=(10, 5))
+
+        self.label_trazabilidad = ctk.CTkLabel(self, text="Trazabilidad:", font=controller.font_opcion, text_color=COLOR_TEXTO_OSCURO)
+        self.label_trazabilidad.grid(row=3, column=0, padx=10, pady=(10, 5), sticky="w")
+        
+        self.textbox_trazabilidad = ctk.CTkTextbox(self, height=150, width=400, font=ctk.CTkFont(family="Consolas", size=10))
+        self.textbox_trazabilidad.grid(row=4, column=0, padx=10, pady=(0, 10), sticky="ew")
+
+    def update_results(self, recomendaciones, trazabilidad):
         self.textbox_trazabilidad.delete("1.0", "end")
         
         if recomendaciones:
-            self.textbox_trazabilidad.insert("end", "Resultados generados exitosamente.\n\n")
+            libro_id, puntaje = recomendaciones[0] 
             
-            row_index = 0
-            for libro_id, puntaje in recomendaciones:
-                cursor = self.motor.conn.cursor()
-                cursor.execute(f"SELECT Titulo, Autor, URL_Imagen FROM LIBROS WHERE ID_Libro = {libro_id}")
-                resultado = cursor.fetchone()
+            cursor = self.controller.motor.conn.cursor()
+            cursor.execute("SELECT Titulo, Autor FROM LIBROS WHERE ID_Libro = ?", (libro_id,))
+            resultado = cursor.fetchone()
+            
+            if resultado:
+                titulo, autor = resultado
                 
-                if resultado:
-                    titulo, autor, url_imagen = resultado
-                    
-                    # Mostrar resultados en una tarjeta estilizada
-                    card = ctk.CTkFrame(self.recomendaciones_scroll_frame, corner_radius=10, fg_color=COLOR_FONDO_TARJETA)
-                    card.grid(row=row_index, column=0, padx=10, pady=10, sticky="ew")
-                    card.grid_columnconfigure(1, weight=1)
-
-                    # Título y Autor
-                    info_text = f"Título: {titulo}\nAutor: {autor}\nAfinidad: {puntaje:.2f}"
-                    
-                    label_info = ctk.CTkLabel(card, text=info_text, justify="left", font=self.font_opcion, text_color=COLOR_TEXTO_OSCURO)
-                    label_info.grid(row=0, column=1, padx=15, pady=10, sticky="w")
-                    
-                    row_index += 1
+                info_text = (f"Título: {titulo}\nAutor: {autor}\n"
+                             f"Afinidad Total: {puntaje:.2f}")
+                self.book_info.configure(text=info_text)
                 
+                self.image_label.configure(image=self.controller.assets.get('placeholder_book'), text="")
+            
+            self.textbox_trazabilidad.insert("end", "\n--- TRAZABILIDAD DETALLADA ---\n")
+            for line in trazabilidad:
+                self.textbox_trazabilidad.insert("end", line + "\n")
         else:
-            self.textbox_trazabilidad.insert("end", "No se encontraron coincidencias suficientes. Intente con otras respuestas.\n")
-            
-        # 4.2 Mostrar Trazabilidad
-        self.textbox_trazabilidad.insert("end", "\n--- TRAZABILIDAD DETALLADA ---\n")
-        for line in trazabilidad:
-            self.textbox_trazabilidad.insert("end", line + "\n")
+            self.book_info.configure(text="No se encontró una recomendación adecuada.")
+            self.image_label.configure(image=None, text="Sin Imagen")
+            self.textbox_trazabilidad.insert("end", "El motor no activó suficientes reglas.")
 
+    def reset_app(self):
+        self.controller.current_step = 1
+        self.controller.var_genero.set("")
+        self.controller.var_ritmo.set("")
+        self.controller.var_complejidad.set("")
+        self.controller.show_frame("GenreFrame")
+        self.textbox_trazabilidad.delete("1.0", "end")
 
 # --- EJECUCIÓN DEL SISTEMA ---
 if __name__ == "__main__":
-    # 1. Crear y cargar la base de datos
     crear_y_cargar_bd_libros(DB_FILE, LIBROS_EJEMPLO)
-    
-    # 2. Ejecución de la Interfaz CustomTkinter
     app = App()
     app.mainloop()
