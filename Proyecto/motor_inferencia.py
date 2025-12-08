@@ -1,24 +1,34 @@
 # ==================================
-# 2. motor_inferencia.py (Motor de Inferencia y Conexión a BD)
+# 1. motor_inferencia.py (Motor de Inferencia y Base de Conocimiento JSON)
 # ==================================
-import sqlite3
+import json
+import os
 from modelo_conocimiento import ReglaInferencia 
+import random 
+
+# Definimos la ruta del archivo JSON de conocimiento (se busca en la carpeta principal)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
+CONOCIMIENTO_FILE = os.path.join(BASE_DIR, 'base_conocimiento.json')
 
 class MotorRecomendacion:
-    """Clase principal que gestiona la conexión a BD y la lógica de inferencia."""
-    def __init__(self, db_file):
-        self.db_file = db_file
+    """Clase principal que gestiona la base de conocimiento JSON y la lógica de inferencia."""
+    def __init__(self):
         self.reglas = []
-        self.conn = None
+        self.libros = [] # Almacenará los datos del JSON
 
-    def conectar_bd(self):
-        """Establece la conexión a la base de datos SQLite."""
+    def cargar_conocimiento_json(self):
+        """Carga los datos de los libros desde el archivo JSON."""
         try:
-            self.conn = sqlite3.connect(self.db_file)
-            # print(f"✅ Conectado a la BD: {self.db_file}")
+            with open(CONOCIMIENTO_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                self.libros = data.get('libros', [])
+            # print(f"✅ {len(self.libros)} libros cargados desde JSON.")
             return True
-        except sqlite3.Error as e:
-            print(f"❌ Error de conexión a BD: {e}")
+        except FileNotFoundError:
+            print(f"❌ Error: El archivo {CONOCIMIENTO_FILE} no fue encontrado.")
+            return False
+        except json.JSONDecodeError:
+            print(f"❌ Error: El archivo JSON no es válido.")
             return False
 
     def cargar_reglas(self):
@@ -40,46 +50,74 @@ class MotorRecomendacion:
         self.reglas.append(ReglaInferencia('Complejidad Media', 'Media', 0.85))
         self.reglas.append(ReglaInferencia('Complejidad Baja', 'Baja', 0.70)) 
 
-        # print(f"✅ {len(self.reglas)} reglas de inferencia cargadas en el motor.")
+        # Reglas para MOTIVACIÓN
+        self.reglas.append(ReglaInferencia('Motivación_Evadir', 'Evadir', 0.70))
+        self.reglas.append(ReglaInferencia('Motivación_Aprender', 'Aprender', 0.75))
+        self.reglas.append(ReglaInferencia('Motivación_Emocional', 'Emocional', 0.80))
+        
+        # Reglas para COMPROMISO
+        self.reglas.append(ReglaInferencia('Compromiso_Corto', 'Corto', 0.60))
+        self.reglas.append(ReglaInferencia('Compromiso_Medio', 'Medio', 0.65))
+        self.reglas.append(ReglaInferencia('Compromiso_Largo', 'Largo', 0.60))
         
     def inferir_recomendaciones(self, respuestas_usuario):
         """Implementa el Encadenamiento Hacia Adelante con Ponderación (FC)."""
         puntajes_libros = {}
         trazabilidad = []
-        cursor = self.conn.cursor()
-
+        
+        # 1. Proceso de Inferencia
         for respuesta in respuestas_usuario:
             for regla in self.reglas:
-                # 1. Disparo de Reglas
                 if regla.respuesta_usuario == respuesta:
                     trazabilidad.append(f"Regla Activada: {regla.respuesta_usuario} -> {regla.atributo_esperado} (FC: {regla.fc})")
 
                     atributo_buscado = regla.atributo_esperado
                     fc = regla.fc
                     
-                    # 2. Búsqueda en la Base de Hechos (Busca en los 3 atributos de la tabla LIBROS)
-                    query = f"""
-                    SELECT ID_Libro, Titulo, Rating_Base 
-                    FROM LIBROS 
-                    WHERE Atributo_1_Genero = '{atributo_buscado}' 
-                       OR Atributo_2_Ritmo = '{atributo_buscado}' 
-                       OR Atributo_3_Complejidad = '{atributo_buscado}'
-                    """
-                    
-                    cursor.execute(query)
-                    libros_coincidentes = cursor.fetchall()
-                    
-                    # 3. Ponderación y Acumulación
-                    for libro_id, titulo, rating_base in libros_coincidentes:
-                        puntuacion_regla = fc
-                        puntajes_libros[libro_id] = puntajes_libros.get(libro_id, rating_base) + puntuacion_regla
-                        trazabilidad.append(f"  |-> Acumulando: Libro '{titulo}' recibió +{fc}. Total: {puntajes_libros[libro_id]:.2f}")
+                    # 2. Búsqueda y Ponderación en la Base de Hechos (Libros JSON)
+                    for libro in self.libros:
+                        # Mapeamos los atributos para facilitar la búsqueda
+                        atributos_libro = [
+                            libro['Atributo_1_Genero'],
+                            libro['Atributo_2_Ritmo'],
+                            libro['Atributo_3_Complejidad'],
+                            libro['Atributo_4_Motivacion'],
+                            libro['Atributo_5_Compromiso']
+                        ]
+                        
+                        if atributo_buscado in atributos_libro:
+                            libro_id = libro['ID_Libro']
+                            titulo = libro['Titulo']
+                            rating_base = libro['Rating_Base']
+                            
+                            puntuacion_regla = fc
+                            # Sumamos el puntaje de la regla al rating base (inicial o acumulado)
+                            # Usamos el rating_base como puntaje inicial solo si el libro no tiene puntaje previo.
+                            if libro_id not in puntajes_libros:
+                                puntajes_libros[libro_id] = rating_base
+                                
+                            puntajes_libros[libro_id] += puntuacion_regla
 
-        # 4. Clasificación y Salida
+                            trazabilidad.append(f"  |-> Acumulando: Libro '{titulo}' recibió +{fc}. Total: {puntajes_libros[libro_id]:.2f}")
+
+        # 3. Clasificación y Salida
         recomendaciones_ordenadas = sorted(
             puntajes_libros.items(), 
             key=lambda item: item[1], 
             reverse=True
         )
+        
+        # 4. Obtener la información completa de los libros recomendados
+        recomendaciones_finales = []
+        for libro_id, puntaje in recomendaciones_ordenadas[:2]:
+            libro_info = next((l for l in self.libros if l['ID_Libro'] == libro_id), None)
+            if libro_info:
+                recomendaciones_finales.append({
+                    "ID_Libro": libro_id,
+                    "Titulo": libro_info['Titulo'],
+                    "Autor": libro_info['Autor'],
+                    "Ruta_Imagen": libro_info['Ruta_Imagen'],
+                    "Puntaje_Total": puntaje
+                })
 
-        return recomendaciones_ordenadas[:3], trazabilidad
+        return recomendaciones_finales, trazabilidad
